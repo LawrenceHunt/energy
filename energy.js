@@ -19,71 +19,57 @@ const DAYS_IN_YEAR = 365
 // Each plan will be printed on its own line in the format SUPPLIER,PLAN,TOTAL_COST.
 // Total cost should be rounded to 2 decimal places, i.e. pounds and pence.
 
-350
+const getTotalForPlan = plan => {
+  // sanitize the rate array - get array of prices sorted upward by thresholdVal,
+  // with the top (thresholdless) band at the end.
+  const ratesSortedByThreshold = Array.from(plan.rates).sort((a, b) => {
+    if (!a.threshold) return 1
+    if (!b.threshold) return -1
+    return a.threshold - b.threshold
+  })
+  
+  let {total} = ratesSortedByThreshold.reduce((accumulator, rate) => {
 
-200
+    let {total, remainingUsage} = accumulator
 
-250
+    // we only need to limit the amount we apply if there is a threshold
+    // and there is enough remaining usage to cross this threshold.
+    const usageAtThisRate = rate.threshold && remaining > rate.threshold
+    ? rate.threshold
+    : remainingUsage
 
-const getPricesForAnnualUsage = function(annualUsage) {
+    const costAtThisRate = usageAtThisRate * rate.price
 
-  const getTotalForPlan = function(plan) {
-    let total = 0
-    let leftOver = annualUsage
-    let lastThreshold = 0
+    total += costAtThisRate
+    remainingUsage -= usageAtThisRate
 
-    // sanitize the rate array - get array of prices sorted downward by thresholdVal,
-    // with the top band at the end.
-    const ratesSortedByThreshold = plan =>
-      Array.from(plan.rates).sort((a, b) => {
-      if (!a.threshold) return 1
-      if (!b.threshold) return -1
-      return b.threshold - a.threshold
-    })
+    return { total, remainingUsage }
 
-    const {total} = ratesSortedByThreshold.reduce((acc, rate, index) => {
-      // are we in a threshold ?
-      if (rate.threshold) {
-        const amountAtThisThreshold = acc.lastThreshold - rate.threshold
-
-      }
-
-
-      if (ratesSortedByThreshold[index + 1].threshold) {
-        const
-      }
-    }, {
+    },
+    {
+      // accumulator start val
       total: 0,
-      lastThreshold: annualUsage
-    })
-
-    ratesSortedByThreshold.forEach((rate, index) => {
-
-
-
-
-      if (leftOver > 0) {
-        if (!rate.threshold) {
-          total += leftOver * rate.price
-
-        // usage gets into threshold
-        } else if (leftOver <= rate.threshold) {
-          total += leftOver * rate.price
-          leftOver = 0
-
-        } else {
-          total += rate.threshold * rate.price
-          leftOver -= rate.threshold
-        }
-      } else return
-    })
-  }
-
-    // is there a standing charge?
-    if (plan.standing_charge) {
-      total += plan.standing_charge * DAYS_IN_YEAR
+      remainingUsage: annualUsage
     }
+  )
+
+  // is there a standing charge?
+  if (plan.standing_charge) {
+    total += plan.standing_charge * DAYS_IN_YEAR
   }
+
+  // apply VAT
+  total += total*VAT
+
+  return total
+}
+
+const getPricesForAnnualUsage = annualUsage => {
+
+
+
+}
+
   // how many rates are there?
 
   //
